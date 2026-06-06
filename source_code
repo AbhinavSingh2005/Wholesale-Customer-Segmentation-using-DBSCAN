@@ -1,1 +1,77 @@
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt 
+from sklearn.model_selection import train_test_split 
+from sklearn.cluster import DBSCAN 
+from sklearn import metrics 
+from sklearn.preprocessing import StandardScaler, LabelEncoder 
+from sklearn.decomposition import PCA 
+
+print("Libraries import sucessful")
+
+# load the dataset 
+data = pd.read_csv("WholesaleCustomerSegmentationDataset.csv")
+print("Data loaded successfully") 
+
+# create dataframe 
+df = pd.DataFrame(data)
+df 
+
+# features 
+X = df 
+X.head() 
+
+# feature scaling 
+scaler = StandardScaler() 
+X_scaled = scaler.fit_transform(X)
+X.head() 
+
+# apply dbscan 
+model = DBSCAN (eps = 1.2, min_samples = 5) 
+
+clusters = model.fit_predict (X_scaled) 
+
+df["Clusters"] = clusters 
+
+# Number of clusters
+n_clusters = len(set(clusters)) - (1 if -1 in clusters else 0)
+print("Number of Clusters:", n_clusters)
+
+# Number of noise points
+noise_points = list(clusters).count(-1)
+print("Noise Points:", noise_points)
+
+# Silhouette Score
+if n_clusters > 1:
+    score = silhouette_score(X_scaled, clusters)
+    print("Silhouette Score:", round(score, 3))
+
+# PCA for visualization
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+
+# Plot clusters
+plt.figure(figsize=(10,7))
+
+scatter = plt.scatter(
+    X_pca[:,0],
+    X_pca[:,1],
+    c=clusters,
+    cmap='viridis',
+    s=70
+)
+
+plt.title("DBSCAN Clustering")
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.colorbar(scatter, label="Cluster")
+plt.show()
+
+
+
+# First few clustered records
+print("\nDataset with Cluster Labels:")
+print(df.head())
+
 
